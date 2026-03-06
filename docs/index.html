@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QRQLL 模拟服务器</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.08);
+      padding: 40px 48px;
+      max-width: 520px;
+      width: 100%;
+      text-align: center;
+    }
+    .icon { font-size: 56px; margin-bottom: 16px; }
+    h1 { font-size: 24px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px; }
+    .subtitle { font-size: 14px; color: #666; margin-bottom: 32px; }
+    #status-box {
+      padding: 14px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 24px;
+      transition: background .3s, color .3s;
+    }
+    .status-loading { background: #fff8e1; color: #856404; }
+    .status-ok      { background: #e8f5e9; color: #2e7d32; }
+    .status-error   { background: #ffebee; color: #c62828; }
+    .info-list { text-align: left; font-size: 13px; color: #555; line-height: 1.8; }
+    .info-list li { list-style: none; padding: 4px 0; border-bottom: 1px solid #f0f0f0; }
+    .info-list li:last-child { border-bottom: none; }
+    code {
+      background: #f5f5f5;
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-size: 12px;
+      word-break: break-all;
+    }
+    .footer { margin-top: 24px; font-size: 12px; color: #aaa; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">📡</div>
+    <h1>QRQLL 模拟服务器</h1>
+    <p class="subtitle">青鹿教学系统静态模拟服务 · GitHub Pages 版本</p>
+
+    <div id="status-box" class="status-loading">⏳ 正在注册 Service Worker…</div>
+
+    <ul class="info-list">
+      <li>🟢 服务地址：<code id="origin">-</code></li>
+      <li>📋 作业列表：<code>/classInApp/serv-teachplatform/hw/basicInfo/student/selectPadHomeworkList</code></li>
+      <li>📄 作业详情：<code>/classInApp/serv-teachplatform/hw/basicInfo/student/selectPadHomeworkDetail</code></li>
+      <li>🔑 认证接口：<code>/classInApp/serv-manager/j_spring_security_check</code></li>
+      <li>📁 课件列表：<code>/classInApp/serv-teachplatform/courseware/student/selectShareFileList</code></li>
+    </ul>
+
+    <p class="footer">
+      将青鹿客户端服务器地址设置为本页面域名后刷新即可使用。<br/>
+      Service Worker 会拦截所有 API 请求并返回模拟数据。
+    </p>
+  </div>
+
+  <script>
+    document.getElementById('origin').textContent = location.origin;
+
+    if (!('serviceWorker' in navigator)) {
+      var box = document.getElementById('status-box');
+      box.className = 'status-error';
+      box.textContent = '❌ 您的浏览器不支持 Service Worker，无法使用本服务。';
+    } else {
+      navigator.serviceWorker.register('./sw.js', { scope: './' })
+        .then(function(reg) {
+          function onReady() {
+            var box = document.getElementById('status-box');
+            box.className = 'status-ok';
+            box.textContent = '✅ Service Worker 已就绪，模拟 API 服务已启动。';
+          }
+          if (reg.active) {
+            onReady();
+          } else {
+            var sw = reg.installing || reg.waiting;
+            sw.addEventListener('statechange', function() {
+              if (sw.state === 'activated') onReady();
+            });
+          }
+        })
+        .catch(function(err) {
+          var box = document.getElementById('status-box');
+          box.className = 'status-error';
+          box.textContent = '❌ Service Worker 注册失败：' + err;
+        });
+    }
+  </script>
+</body>
+</html>
